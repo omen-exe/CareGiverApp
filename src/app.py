@@ -1,0 +1,28 @@
+import tkinter as tk
+from src.health_metrics_handler import open_health_metrics_window
+from src.medication import open_medication_window
+from src.appointments import open_appointments_window
+from src.health_metrics import open_health_window
+from src.appointments_handler import open_appointments_options
+from src.medications_handler import open_medications_options
+from src.voice_activation import listen_for_commands
+
+def main_app():
+    root = tk.Tk()
+    root.title("Caregiver App")
+    root.geometry("1000x1000")
+
+    # Buttons for various functionalities
+    tk.Button(root, text="Manage Medication", command=open_medication_window).pack(pady=10)
+    tk.Button(root, text="Manage Appointments", command=open_appointments_window).pack(pady=10)
+    tk.Button(root, text="Track Health Metrics", command=open_health_window).pack(pady=10)
+    
+    # Add main buttons for getting appointments and medications
+    tk.Button(root, text="Get Appointments", command=open_appointments_options).pack(pady=10)
+    tk.Button(root, text="Get Medications", command=open_medications_options).pack(pady=10)
+    tk.Button(root, text="Get Patient Health Metrics", command=open_health_metrics_window).pack(pady=10)
+    
+    # Voice Command Button
+    tk.Button(root, text="Activate Voice Command", command=listen_for_commands).pack(pady=10)
+
+    root.mainloop()
