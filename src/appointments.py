@@ -6,6 +6,7 @@ from plyer import notification
 import csv
 import time
 from threading import Thread
+from src import speak_handler
 from tkcalendar import Calendar
 import sqlite3
 
@@ -59,6 +60,7 @@ def send_appointment_reminder(doctor_name, app_date, app_time):
         timeout=10  # Duration of the notification
     )
     print(f"Notification sent for appointment with {doctor_name}!")
+    speak_handler.speak(f"Your appointment with Dr. {doctor_name} is scheduled on {app_date} at {app_time}")
 
 def mark_appointment_as_sent(appointment_id):
     """Mark the appointment reminder as sent"""
