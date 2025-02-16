@@ -8,11 +8,23 @@ from src.medication import open_medication_window
 from src.appointments import open_appointments_window
 from src.health_metrics import open_health_window
 
+MAX_RETRIES = 5
+
 def speak(text):
     """Speak out the text."""
     engine = pyttsx3.init()
     engine.say(text)
     engine.runAndWait()
+
+
+def handle_retry(retries, action):
+    """Handle retry logic."""
+    if retries < MAX_RETRIES:
+        speak(f"You have {MAX_RETRIES - retries} attempts remaining.")
+        action(retries + 1)
+    else:
+        speak("Sorry, I couldn't understand after multiple attempts. Proceeding with default actions.")
+        main_app()
 
 
 def ask_to_activate_voice_command():
@@ -62,7 +74,7 @@ def ask_to_activate_voice_command():
         main_app()  # Proceed with the app in case of an error
 
 
-def listen_for_commands():
+def listen_for_commands(retries=0):
     recognizer = sr.Recognizer()
     mic = sr.Microphone()
 
@@ -72,6 +84,10 @@ def listen_for_commands():
             recognizer.adjust_for_ambient_noise(source, duration=1)  # Adjust for ambient noise
             print("Please wait, listening for your command...")
             speak("Listening for commands now. Please speak.")
+
+            # Announce available commands to the user
+            available_commands = "You can say, 'Medication', 'Appointments', or 'Health Metrics'."
+            speak("Here are the available commands: " + available_commands)
             
             # Start listening with a timeout
             audio = recognizer.listen(source, timeout=20, phrase_time_limit=20)  # Timeout after 5 seconds if no speech
@@ -96,15 +112,19 @@ def listen_for_commands():
 
         else:
             speak("Sorry, I didn't understand the command.")
+            listen_for_commands()
     
     except sr.UnknownValueError:
         print("Google Speech Recognition could not understand the audio.")
         speak("Sorry, I couldn't understand the command. Please try again.")
+        handle_retry(retries, listen_for_commands)  # Retry if the command doesn't match
     
     except sr.RequestError as e:
         print(f"Could not request results from Google Speech Recognition service; {e}")
         speak("Sorry, there was an issue with the service. Please try again.")
-    
+        handle_retry(retries, listen_for_commands)  # Retry if the command doesn't match
+
     except Exception as e:
         print(f"An error occurred: {e}")
         speak("An unexpected error occurred. Please try again.")
+        handle_retry(retries, listen_for_commands)  # Retry if the command doesn't match
