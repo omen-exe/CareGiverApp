@@ -11,7 +11,7 @@ def main_app():
     root = tk.Tk()
     root.title("Caregiver App")
     root.geometry("1000x1000")
-
+          
     # Buttons for various functionalities
     tk.Button(root, text="Manage Medication", command=open_medication_window).pack(pady=10)
     tk.Button(root, text="Manage Appointments", command=open_appointments_window).pack(pady=10)
@@ -22,7 +22,4 @@ def main_app():
     tk.Button(root, text="Get Medications", command=open_medications_options).pack(pady=10)
     tk.Button(root, text="Get Patient Health Metrics", command=open_health_metrics_window).pack(pady=10)
     
-    # Voice Command Button
-    tk.Button(root, text="Activate Voice Command", command=listen_for_commands).pack(pady=10)
-
     root.mainloop()
