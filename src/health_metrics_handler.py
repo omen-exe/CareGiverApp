@@ -19,7 +19,3 @@ def get_health_metrics():
             messagebox.showinfo("No Data", "No health metrics found.")
     except sqlite3.Error as e:
         print(f"Error fetching health metrics: {e}")
-
-def open_health_metrics_window():
-    """Open the health metrics window."""
-    get_health_metrics()

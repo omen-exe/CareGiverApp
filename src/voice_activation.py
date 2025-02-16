@@ -3,8 +3,7 @@ import speech_recognition as sr
 
 from src import speak_handler
 from src.app import main_app
-from src.health_metrics_handler import open_health_metrics_window
-from src.medication import listen_for_medication_details, open_medication_window
+from src.medication import listen_for_medication_details
 from src.appointments import open_appointments_window
 from src.health_metrics import open_health_window
 

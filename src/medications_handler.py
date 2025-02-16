@@ -35,11 +35,3 @@ def get_upcoming_medications():
     except sqlite3.Error as e:
         print(f"Error fetching upcoming medications: {e}")
 
-
-def open_medications_options():
-    """Open a window with options for medications (reminded or upcoming)."""
-    options_window = tk.Toplevel()
-    options_window.title("Medications Options")
-    
-    tk.Button(options_window, text="Get Already Reminded Medications", command=get_reminded_medications).pack(pady=10)
-    tk.Button(options_window, text="Get Upcoming Medications", command=get_upcoming_medications).pack(pady=10)
