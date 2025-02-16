@@ -7,6 +7,11 @@ import csv
 import time
 from threading import Thread
 import sqlite3
+import speech_recognition as sr
+from src import speak_handler
+
+recognizer = sr.Recognizer()
+mic = sr.Microphone()
 
 # Function to save medication reminder
 def save_medication(medication_name, dose, reminder_time):
@@ -90,6 +95,7 @@ def check_reminders():
                 if current_time == reminder_time:
                     # If current time matches the reminder time, send a notification
                     send_medication_reminder(medication["medication_name"], medication["dose"], reminder_time)
+                    speak_handler.speak(f"It's time to take {medication['dose']} of {medication['medication_name']}")
                     
                     # After sending the reminder, mark it as sent
                     mark_reminder_as_sent(medication["id"])  # Update the reminder_sent field to 1
@@ -102,6 +108,102 @@ def start_reminder_checking():
     print(f"Starting Reminder check") 
     reminder_thread = Thread(target=check_reminders, daemon=True)
     reminder_thread.start()
+
+
+# Function to listen to voice input with retries
+def listen_for_input(prompt):
+    retries = 5
+    while retries > 0:
+        speak_handler.speak(prompt)
+        with mic as source:
+            recognizer.adjust_for_ambient_noise(source, duration=1)  # Adjust for ambient noise
+            audio = recognizer.listen(source, timeout=20, phrase_time_limit=20)
+        
+        try:
+            command = recognizer.recognize_google(audio, language="en-US")
+            speak_handler.speak(f"Recognized Command: {command}")
+            return command.lower()
+        except sr.UnknownValueError:
+            speak_handler.speak("Sorry, I couldn't understand that. Please try again.")
+        except sr.RequestError as e:
+            speak_handler.speak(f"Could not request results from Google Speech Recognition service; {e}")
+        except Exception as e:
+            speak_handler.speak(f"An error occurred: {e}")
+        
+        retries -= 1  # Decrement retries
+
+    speak_handler.speak("Sorry, I couldn't understand after several attempts.")
+    return None
+
+def listen_for_time_input():
+    time_input = listen_for_input("At what time do you want to take the medication? Please say the time in the format of hour and minute, like 'eight thirty' or 'three fifteen'. Only use hours from 1 to 12.")
+    
+    if time_input:
+        # Split the input into words like "eight" and "thirty"
+        time_parts = time_input.split()
+
+        # Initialize hour and minute variables
+        hour = 0
+        minute = 0
+
+        # Word-to-number dictionary for hours and minutes
+        word_to_number = {
+            "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
+            "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
+            "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16, "seventeen": 17,
+            "eighteen": 18, "nineteen": 19, "twenty": 20,
+            "twenty-one": 21, "twenty-two": 22, "twenty-three": 23, "twenty-four": 24,
+            "twenty-five": 25, "twenty-six": 26, "twenty-seven": 27, "twenty-eight": 28, "twenty-nine": 29,
+            "thirty": 30, "thirty-one": 31, "thirty-two": 32, "thirty-three": 33, "thirty-four": 34,
+            "thirty-five": 35, "thirty-six": 36, "thirty-seven": 37, "thirty-eight": 38, "thirty-nine": 39,
+            "forty": 40, "forty-one": 41, "forty-two": 42, "forty-three": 43, "forty-four": 44,
+            "forty-five": 45, "forty-six": 46, "forty-seven": 47, "forty-eight": 48, "forty-nine": 49,
+            "fifty": 50, "fifty-one": 51, "fifty-two": 52, "fifty-three": 53, "fifty-four": 54,
+            "fifty-five": 55, "fifty-six": 56, "fifty-seven": 57, "fifty-eight": 58, "fifty-nine": 59
+        }
+
+        # Try to convert the words into numbers
+        if len(time_parts) == 2:  # e.g., "eight thirty"
+            hour_word = time_parts[0].lower()
+            minute_word = time_parts[1].lower()
+
+            # Convert words to numbers
+            hour = word_to_number.get(hour_word, 0)
+            minute = word_to_number.get(minute_word, 0)
+
+        elif len(time_parts) == 1:  # If only hour is given (e.g., "eight")
+            hour_word = time_parts[0].lower()
+            hour = word_to_number.get(hour_word, 0)
+            minute = 0  # Default to 0 minutes if only hour is spoken
+
+        # Restrict to 12-hour format (hours between 1 and 12)
+        if hour < 1 or hour > 12:
+            speak_handler.speak("Please provide a valid hour between 1 and 12.")
+            return None, None
+
+        return hour, minute
+    else:
+        return None, None
+
+
+def listen_for_medication_details():
+    # Step 1: Ask for Medication Name
+    medication_name = listen_for_input("Please say the name of the medication.")
+
+    # Step 2: Ask for Dose
+    dose = listen_for_input("Please say the dose of the medication.")
+
+    # Step 3: Ask for Hour
+    hour,minute = listen_for_time_input()
+    
+    if medication_name and dose and hour and minute:
+        speak_handler.speak(f"Got it. You want to take {dose} of {medication_name} at {hour} hr {minute} minutes.")
+        reminder_time = convert_to_24hr_format(hour, minute)
+        save_medication(medication_name, dose, reminder_time)
+    else:
+        speak_handler.speak("Sorry, I couldn't understand the full medication details. Please try again.")
+        return None, None, None
+
 
 # Function to open the medication reminder window
 def open_medication_window():

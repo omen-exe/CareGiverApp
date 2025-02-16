@@ -5,7 +5,6 @@ from src.appointments import open_appointments_window
 from src.health_metrics import open_health_window
 from src.appointments_handler import open_appointments_options
 from src.medications_handler import open_medications_options
-from src.voice_activation import listen_for_commands
 
 def main_app():
     root = tk.Tk()
