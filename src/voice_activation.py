@@ -81,7 +81,7 @@ def listen_for_commands(retries=0):
 
                 # Announce available commands to the user
                 available_commands = "You can say, 'Medication to set a Reminder for medication', 'Appointments to set a reminder for appointments', 'Health Metrics to register the patient's health metrics' or 'quit to quit the application'."
-                #speak_handler.speak("Here are the available commands: " + available_commands)
+                speak_handler.speak("Here are the available commands: " + available_commands)
                 
                 # Start listening with a timeout
                 audio = recognizer.listen(source, timeout=20, phrase_time_limit=20)  # Timeout after 5 seconds if no speech
